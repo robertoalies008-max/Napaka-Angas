@@ -12,6 +12,12 @@ function initResidents() {
     const cancelResidentForm = document.getElementById('cancel-resident-form');
     const cancelResidentForm2 = document.getElementById('cancel-resident-form-2');
     const residentForm = document.getElementById('resident-form');
+    const saveResidentButton = document.getElementById('save-resident-btn');
+
+    // Store the original button label so it can be restored after custom loading states
+    if (saveResidentButton && !saveResidentButton.dataset.originalText) {
+        saveResidentButton.dataset.originalText = saveResidentButton.innerHTML;
+    }
     
     if (addResidentButton) {
         addResidentButton.addEventListener('click', function() {
@@ -112,11 +118,17 @@ function resetResidentForm() {
         document.getElementById('resident-status').value = 'active';
         // Clear hidden resident ID
         document.getElementById('resident-id').value = '';
-        
+
         // Set default voter status to 'no'
         const voterNoRadio = document.getElementById('voter-no');
         if (voterNoRadio) voterNoRadio.checked = true;
-        
+
+        const saveButton = document.getElementById('save-resident-btn');
+        if (saveButton && saveButton.dataset.originalText) {
+            saveButton.innerHTML = saveButton.dataset.originalText;
+            saveButton.disabled = false;
+        }
+
         console.log('Form reset successfully');
     }
 }
@@ -129,8 +141,12 @@ function loadResidentData(residentId) {
         console.error('Save button not found!');
         return;
     }
-    
-    const originalText = saveButton.innerHTML;
+
+    if (!saveButton.dataset.originalText) {
+        saveButton.dataset.originalText = saveButton.innerHTML;
+    }
+
+    const originalText = saveButton.dataset.originalText;
     saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
     saveButton.disabled = true;
 
@@ -193,7 +209,7 @@ function loadResidentData(residentId) {
         showNotification('Error loading resident: ' + error.message, 'error');
     })
     .finally(() => {
-        saveButton.innerHTML = originalText;
+        saveButton.innerHTML = saveButton.dataset.originalText || originalText;
         saveButton.disabled = false;
     });
 }
@@ -203,8 +219,18 @@ function handleResidentSubmit(e) {
     console.log('Form submission started');
     
     const submitButton = e.target.querySelector('#save-resident-btn');
-    const originalText = submitButton.innerHTML;
-    
+
+    if (!submitButton) {
+        console.error('Save resident button not found during submit');
+        return;
+    }
+
+    if (!submitButton.dataset.originalText) {
+        submitButton.dataset.originalText = submitButton.innerHTML;
+    }
+
+    const originalText = submitButton.dataset.originalText;
+
     // Show loading state
     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
     submitButton.disabled = true;
@@ -266,7 +292,7 @@ function handleResidentSubmit(e) {
         showNotification('Error: ' + error.message, 'error');
     })
     .finally(() => {
-        submitButton.innerHTML = originalText;
+        submitButton.innerHTML = submitButton.dataset.originalText || originalText;
         submitButton.disabled = false;
     });
 }
